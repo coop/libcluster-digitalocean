@@ -157,12 +157,10 @@ defmodule ClusterDigitalOcean.TagStrategy do
   defp parse_response(app_name, resp) do
     case resp do
       %{"droplets" => droplets} ->
-        Enum.map(droplets, fn %{
-                                "networks" => %{
-                                  "v4" => [%{"ip_address" => ip_address, "type" => "public"} | _]
-                                }
-                              } ->
-          :"#{app_name}@#{ip_address}"
+        Enum.map(droplets, fn %{"networks" => %{"v4" => entries}} ->
+          public = Enum.find(entries, fn entry -> entry["type"] == "public" end)
+
+          :"#{app_name}@#{public["ip_address"]}"
         end)
 
       _ ->
